@@ -1,0 +1,6 @@
+fastapi==0.115.6      # web framework for building the API
+uvicorn==0.38.0       # ASGI server to run FastAPI app
+pandas==2.2.3         # data handling / DataFrame for model inputs
+numpy==1.26.4         # compatible with scikit-learn 1.4.x
+scikit-learn==1.6.1   # loads the sklearn Pipeline / RandomForest
+joblib==1.4.2         # serialization utility used by sklearn
