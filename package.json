@@ -2,10 +2,16 @@
   "name": "powergrid-forecasting",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18 <25"
+  },
   "scripts": {
     "dev": "next dev",
+    "dev:frontend": "next dev",
+    "dev:backend": "ALLOW_MODEL_FALLBACK=true uvicorn server.main:app --reload --port 8000",
     "build": "next build",
     "start": "next start",
+    "start:backend": "ALLOW_MODEL_FALLBACK=true uvicorn server.main:app --host 0.0.0.0 --port 8000",
     "lint": "next lint"
   },
   "dependencies": {

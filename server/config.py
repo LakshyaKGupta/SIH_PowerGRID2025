@@ -18,7 +18,7 @@ class Settings(BaseModel):
         "http://127.0.0.1:3000",
         os.getenv("NEXT_PUBLIC_SITE_URL", "http://localhost:3000"),
     ]
-    allow_model_fallback: bool = os.getenv("ALLOW_MODEL_FALLBACK", "false").lower() in {"1", "true", "yes"}
+    allow_model_fallback: bool = os.getenv("ALLOW_MODEL_FALLBACK", "true").lower() in {"1", "true", "yes"}
 
 
 @lru_cache

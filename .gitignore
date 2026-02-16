@@ -27,10 +27,13 @@ yarn-error.log*
 # Testing
 coverage/
 .nyc_output/
+.playwright-cli/
 
 # Misc
 .DS_Store
 *.pem
+__pycache__/
+*.pyc
 
 # Vercel
 .vercel

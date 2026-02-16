@@ -22,6 +22,11 @@ interface DashboardStats {
 }
 
 class API {
+  private getApiBaseUrl() {
+    const configured = (process.env.NEXT_PUBLIC_API_BASE_URL || '').trim();
+    return configured ? configured.replace(/\/$/, '') : '';
+  }
+
   syncAllData() {
     this.updateInventoryAlerts();
     this.updateProcurementRecommendations();
@@ -190,13 +195,19 @@ class API {
   }
 
   private async tryBackendForecast(formData: any) {
-    const baseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+    const baseUrl = this.getApiBaseUrl();
+    if (!baseUrl) {
+      return null;
+    }
     const endpoint = `${baseUrl}/api/forecast`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           project_name: formData.projectName,
           features: this.buildFeaturePayload(formData),
@@ -214,8 +225,12 @@ class API {
       const payload = await response.json();
       return this.mapBackendForecastResponse(payload, formData);
     } catch (error) {
-      console.error('Forecast API unavailable, using local heuristic', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Forecast API unavailable, using local heuristic', error);
+      }
       return null;
+    } finally {
+      clearTimeout(timeout);
     }
   }
 

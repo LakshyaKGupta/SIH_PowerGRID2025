@@ -6,7 +6,7 @@ import { useAuth } from '../../lib/auth';
 
 export default function SignIn() {
   const router = useRouter();
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp, signInDemo, resetPassword, demoEnabled } = useAuth();
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,6 +14,22 @@ export default function SignIn() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
+
+  const getErrorMessage = (err: any, fallback: string) => {
+    const code = err?.code as string | undefined;
+    if (!code) return err?.message || fallback;
+
+    const known: Record<string, string> = {
+      'auth/invalid-credential': 'Invalid email or password',
+      'auth/user-not-found': 'No account found for this email',
+      'auth/wrong-password': 'Invalid email or password',
+      'auth/email-already-in-use': 'This email is already registered',
+      'auth/weak-password': 'Password should be at least 6 characters',
+      'auth/too-many-requests': 'Too many attempts. Please try again shortly',
+      'auth/invalid-email': 'Please enter a valid email address',
+    };
+    return known[code] || err?.message || fallback;
+  };
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
@@ -24,7 +40,7 @@ export default function SignIn() {
       await signIn(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      setError(getErrorMessage(err, 'Failed to sign in'));
     } finally {
       setLoading(false);
     }
@@ -50,13 +66,26 @@ export default function SignIn() {
 
     try {
       await signUp(email, password);
-      setSuccess('Account created! Verification email sent. You can now sign in.');
+      setSuccess('Account created successfully. You can now sign in.');
       setTimeout(() => {
         setActiveTab('signin');
         setSuccess('');
       }, 3000);
     } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      setError(getErrorMessage(err, 'Failed to create account'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoAccess = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await signInDemo(email || 'demo@powergrid.local');
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(getErrorMessage(err, 'Unable to start demo mode'));
     } finally {
       setLoading(false);
     }
@@ -178,6 +207,17 @@ export default function SignIn() {
                 {loading ? 'Signing in...' : 'Sign In'}
               </button>
 
+              {demoEnabled && (
+                <button
+                  type="button"
+                  onClick={handleDemoAccess}
+                  disabled={loading}
+                  className="w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-700/60 text-slate-100 font-semibold rounded-lg transition-colors duration-300 border border-slate-600"
+                >
+                  Continue in Demo Mode
+                </button>
+              )}
+
               <p className="text-sm text-slate-400 text-center">
                 Don&apos;t have an account?{' '}
                 <button
@@ -237,6 +277,17 @@ export default function SignIn() {
               >
                 {loading ? 'Creating Account...' : 'Create Account'}
               </button>
+
+              {demoEnabled && (
+                <button
+                  type="button"
+                  onClick={handleDemoAccess}
+                  disabled={loading}
+                  className="w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-700/60 text-slate-100 font-semibold rounded-lg transition-colors duration-300 border border-slate-600"
+                >
+                  Continue in Demo Mode
+                </button>
+              )}
 
               <p className="text-sm text-slate-400 text-center">
                 Already have an account?{' '}

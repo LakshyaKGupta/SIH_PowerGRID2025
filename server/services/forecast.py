@@ -55,6 +55,13 @@ class ForecastService:
                 self.output_labels = [str(name) for name in raw_output_labels]
             self.load_error = None
             logger.info("Loaded ML pipeline from %s", self.settings.model_path)
+        except FileNotFoundError as exc:
+            self.pipeline = None
+            self.load_error = exc
+            logger.warning(
+                "ML model not found at %s. Falling back to heuristic generator.",
+                self.settings.model_path,
+            )
         except Exception as exc:  # pragma: no cover - depends on external artifact
             self.pipeline = None
             self.load_error = exc

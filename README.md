@@ -15,15 +15,15 @@ AI-powered material demand forecasting system for POWERGRID transmission and sub
 ## 📋 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Node.js 18.x or higher
+- Node.js 18.x to 24.x
 - npm or yarn package manager
-- Firebase account (for authentication)
+- Python 3.10+ (for backend API)
 
 ## 🛠️ Installation
 
 1. **Clone or navigate to the project directory**
    ```bash
-   cd F_SIH7
+   cd POWERGRID_SIH
    ```
 
 2. **Install dependencies**
@@ -31,13 +31,10 @@ Before you begin, ensure you have the following installed:
    npm install
    ```
 
-3. **Configure Firebase (Optional - Already configured)**
-   
-   The Firebase configuration is already set up in `lib/firebase.ts`. If you want to use your own Firebase project:
-   
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com)
-   - Enable Email/Password authentication
-   - Update the configuration in `lib/firebase.ts` with your credentials
+3. **Create environment file**
+   ```bash
+   cp .env.example .env.local
+   ```
 
 4. **Run the development server**
    ```bash
@@ -67,23 +64,23 @@ The AI model is hosted by a lightweight FastAPI service located in `server/`. It
    ```bash
    pip install -r server/requirements.txt
    ```
-3. **Check the model artifact** – ensure `server/models/multi_output_model.pkl` exists (place your updated model here).
+3. **Check the model artifact (optional)** – place `server/models/multi_output_model.pkl` if available.
 4. **Run the API locally**
    ```bash
-   uvicorn server.main:app --reload --port 8000
+   npm run start:backend
    ```
-5. **Expose the API to Next.js** – create `.env.local` and set:
+5. **Expose the API to Next.js** – set in `.env.local`:
    ```bash
    NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
    ```
 6. Visit `http://localhost:8000/health` to confirm the model loaded successfully (the response includes diagnostic info).
 
-> If the model cannot be unpickled because it was trained with a different scikit-learn version, the API will automatically fall back to the previous heuristic generator and surface the load error in `/health`.
+> If the model is missing or cannot be loaded, the API automatically uses heuristic fallback forecasting.
 
 ## 🗂️ Project Structure
 
 ```
-F_SIH7/
+POWERGRID_SIH/
 ├── components/           # React components
 │   ├── DashboardLayout.tsx
 │   ├── Header.tsx
@@ -95,8 +92,7 @@ F_SIH7/
 │   └── firebase.ts     # Firebase configuration
 ├── pages/              # Next.js pages
 │   ├── auth/
-│   │   ├── signin.tsx
-│   │   └── signup.tsx
+│   │   └── signin.tsx
 │   ├── dashboard/
 │   │   ├── index.tsx
 │   │   ├── forecast.tsx
@@ -120,14 +116,15 @@ F_SIH7/
 
 ## 🔐 Authentication
 
-The application uses Firebase Authentication with email/password:
+The app supports two auth modes:
 
-1. **Sign Up**: Create a new account at `/auth/signup`
-2. **Sign In**: Login at `/auth/signin`
-3. **Password Reset**: Available on the sign-in page
+1. **Firebase mode**: Email/password login through Firebase.
+2. **Demo mode**: Available on `/auth/signin` with "Continue in Demo Mode" for quick testing and demos.
 
-Default test credentials (create your own):
-- You'll need to create an account using the Sign Up page
+To run strictly on Firebase only, set:
+```bash
+NEXT_PUBLIC_ENABLE_DEMO_AUTH=false
+```
 
 ## 📊 Dashboard Features
 
@@ -210,8 +207,20 @@ The application is fully responsive and optimized for:
 
 1. Push your code to GitHub
 2. Import the repository in [Vercel](https://vercel.com)
-3. Configure environment variables (if needed)
-4. Deploy
+3. Add env vars from `.env.example`:
+   - `NEXT_PUBLIC_ENABLE_DEMO_AUTH=true` for a zero-config demo deploy
+   - Add Firebase vars if you want real authentication
+   - Add `NEXT_PUBLIC_API_BASE_URL` only when a backend API is deployed
+4. Deploy frontend
+
+### Backend Deployment (optional but recommended for live ML API)
+
+Deploy `server/` on Render/Railway/Fly.io and set:
+- `ALLOW_MODEL_FALLBACK=true`
+- `ML_MODEL_PATH=server/models/multi_output_model.pkl` (if model exists)
+
+Then update frontend env:
+- `NEXT_PUBLIC_API_BASE_URL=https://your-api-domain`
 
 ### Other Platforms
 
